@@ -1,0 +1,3 @@
+kubernetes-config/*.yaml
+.vscode
+.venv
