@@ -95,7 +95,7 @@ flake8-import-order = "*"
 locust = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.6"
 
 [scripts]
 lint = "flake8 --show-source ."
