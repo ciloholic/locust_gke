@@ -1,3 +1,4 @@
 kubernetes-config/*.yaml
 .vscode
 .venv
+node_modules

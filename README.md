@@ -1,8 +1,8 @@
 # Locust on Google Kubernetes Engine(GKE)
-Locust を活用した負荷分散テスト環境をGKE上で構築していきます。
+Locustを活用した負荷分散テスト環境をGKE上で構築していきます。
 
 # 参考サイト
-Google Cloud の公式ドキュメントを参考にしつつ、独自にカスタマイズしています。
+Google Cloudの公式ドキュメントを参考にしつつ、独自にカスタマイズしています。
 
 [Kubernetes を使用した負荷分散のテスト](https://cloud.google.com/solutions/distributed-load-testing-using-kubernetes)  
 [Distributed Load Testing Using Kubernetes](https://github.com/GoogleCloudPlatform/distributed-load-testing-using-kubernetes)
@@ -25,10 +25,10 @@ GCPで負荷テスト用のプロジェクト「locust-gke」を作成します�
 - Container Registry
 
 # コンテナイメージの作成
-Container Registry にアップロードするコンテナイメージを作成します。
+Container Registryにアップロードするコンテナイメージを作成します。
 
 ## 作成するコンテナについて
-Docker 関連ファイルは、`docker-image` 配下に格納しています。  
+Docker関連ファイルは、`docker-image`配下に格納しています。
 
 ```
 $ tree
@@ -52,7 +52,7 @@ $ tree
 
 ### docker-image/Dockerfile
 使用する公式イメージは、`python:3.6-alpine` に変更しています。  
-alpine を使用している為、パッケージ管理も `apk` に変更しています。
+alpineを使用している為、パッケージ管理も `apk` に変更しています。
 
 ```
 FROM python:3.6-alpine
@@ -66,7 +66,7 @@ RUN chmod -R 755 /locust
 ENTRYPOINT ["/locust/run.sh"]
 ```
 
-alpine は、組み込み系でよく利用される BusyBox と musl をベースにした Linux ディストリビューションです。  
+alpineは、組み込み系でよく利用されるBusyBoxとmuslをベースにしたLinuxディストリビューションです。  
 `python:3.6` の公式イメージが `924MB` に対し、`python:3.6-alpine` は、`79MB` と非常に軽量です。
 
 ```
@@ -77,7 +77,7 @@ python              3.6                 d6b15f660ce8        2 weeks ago         
 ```
 
 ### docker-image/Pipfile
-ローカル環境で locust を起動する為、Pipenv で環境を整えます。  
+ローカル環境でlocustを起動する為、Pipenvで環境を整えます。  
 最低限のライブラリのみを追加しています。
 
 ```
@@ -103,7 +103,7 @@ format = "autopep8 -ivr ."
 ```
 
 ### docker-image/locust/run.sh
-alpine では、bash がサポートされておらず、ash(Almquist Shell) がサポートされています。  
+alpineでは、bashがサポートされておらず、ash(Almquist Shell) がサポートされています。  
 その為、`bash` を `ash` に変更しています。
 
 ```
@@ -124,8 +124,8 @@ echo "$LOCUST $LOCUS_OPTS"
 $LOCUST $LOCUS_OPTS
 ```
 
-### ローカル環境で locust のシナリオ作成
-`locust/tasks.py` に負荷テストのシナリオを作成し、pipenv 経由で locust を起動します。
+### ローカル環境でlocustのシナリオ作成
+`locust/tasks.py` に負荷テストのシナリオを作成し、pipenv経由でlocustを起動します。
 
 ```
 $ cd docker-image
@@ -137,9 +137,9 @@ $ pipenv run locust -f locust/tasks.py -H http://target.lvh.me
 http://localhost.lvh.me:8089
 
 ### コンテナイメージのビルド
-locust の負荷テストシナリオを内包したコンテナイメージをビルドします。  
+locustの負荷テストシナリオを内包したコンテナイメージをビルドします。  
 レジストリ名は、`[HOSTNAME]/[PROJECT-ID]/[IMAGE]:[TAG]` のように指定します。  
-詳細は、公式ドキュメントの「イメージの push と pull」、[ローカルイメージをレジストリ名にタグ付けする](https://cloud.google.com/container-registry/docs/pushing-and-pulling) をご参照ください。
+詳細は、公式ドキュメントの「イメージのpushとpull」、[ローカルイメージをレジストリ名にタグ付けする](https://cloud.google.com/container-registry/docs/pushing-and-pulling) をご参照ください。
 
 ```
 $ docker build -t gcr.io/locust-gke/locust:latest docker-image/.
@@ -151,15 +151,15 @@ gcr.io/locust-gke/locust   latest              8a297c6382ac        34 minutes ag
 ```
 
 ### コンテナイメージの登録
-Container Registry にコンテナイメージを登録する場合、Cloud SDK のインストールや gcloud の認証を行う必要があります。  
-詳細は、公式ドキュメントの「イメージの push と pull」の [はじめに](https://cloud.google.com/container-registry/docs/pushing-and-pulling) をご参照ください。
+Container Registryにコンテナイメージを登録する場合、Cloud SDKのインストールやgcloudの認証を行う必要があります。  
+詳細は、公式ドキュメントの「イメージのpushとpull」の [はじめに](https://cloud.google.com/container-registry/docs/pushing-and-pulling) をご参照ください。
 
 ```
 $ docker push gcr.io/locust-gke/locust:latest
 ```
 
 ### コンテナイメージの削除
-Container Registry からコンテナイメージを削除する場合、下記コマンドで削除出来ます。
+Container Registryからコンテナイメージを削除する場合、下記コマンドで削除出来ます。
 
 ```
 $ gcloud container images delete gcr.io/locust-gke/locust:latest --force-delete-tags
@@ -168,8 +168,8 @@ $ gcloud container images delete gcr.io/locust-gke/locust:latest --force-delete-
 
 
 # Kubernetes Engine
-Kubernetes Engine の設定や構築を gcloud と kubectl で行います。  
-kubectl の導入は、公式ドキュメントの [クイックスタート](https://cloud.google.com/kubernetes-engine/docs/quickstart) をご参照ください。
+Kubernetes Engineの設定や構築をgcloudとkubectlで行います。  
+kubectlの導入は、公式ドキュメントの [クイックスタート](https://cloud.google.com/kubernetes-engine/docs/quickstart) をご参照ください。
 
 ## デフォルトのプロジェクトの設定
 ```
@@ -188,33 +188,33 @@ $ gcloud config set compute/zone asia-northeast1-a
 $ gcloud config list
 ```
 
-## Kubernetes クラスタの作成
-クラスタ名「locust」という Kubernetes クラスタを作成します。  
+## Kubernetesクラスタの作成
+クラスタ名「locust」というKubernetesクラスタを作成します。  
 ノード数を明示的に指定していますが、デフォルトが3なので指定しなくても問題ありません。
 
 ```
 $ gcloud container clusters create locust --num-nodes=3
 ```
 
-Kubernetes クラスタのリサイズは、下記コマンドで変更可能です。
+Kubernetesクラスタのリサイズは、下記コマンドで変更可能です。
 
 ```
 $ gcloud container cluster resize locust --size 5
 ```
 
-下記コマンドで Kubernetes クラスタ の削除が可能です。
+下記コマンドでKubernetesクラスタの削除が可能です。
 
 ```
 $ gcloud container clusters delete locust
 ```
 
-## Kubernetes クラスタの確認
+## Kubernetesクラスタの確認
 
 ```
 $ kubectl get nodes
 ```
 
-## locust-master のデプロイ
+## locust-masterのデプロイ
 `kubernetes-config/locust-master-controller.yaml.sample` 内の括弧部分を書き換え、`locust-master` をデプロイします。
 
 > [CONTAINER-IMAGE] => gcr.io/locust-gke/locust:latest  
@@ -224,13 +224,13 @@ $ kubectl get nodes
 $ kubectl create -f kubernetes-config/locust-master-controller.yaml
 ```
 
-下記コマンドで locust-master の削除が可能です。
+下記コマンドでlocust-masterの削除が可能です。
 
 ```
 $ kubectl delete -f kubernetes-config/locust-master-controller.yaml
 ```
 
-## locust-master の確認
+## locust-masterの確認
 
 ```
 $ kubectl get rc
@@ -256,7 +256,7 @@ $ kubectl delete -f kubernetes-config/locust-master-service.yaml
 $ gcloud compute forwarding-rules list
 ```
 
-## locust-worker のデプロイ
+## locust-workerのデプロイ
 `kubernetes-config/locust-worker-controller.yaml.sample` 内の括弧部分を書き換え、`locust-worker` をデプロイします。
 
 > [CONTAINER-IMAGE] => gcr.io/locust-gke/locust:latest  
@@ -266,19 +266,19 @@ $ gcloud compute forwarding-rules list
 $ kubectl create -f kubernetes-config/locust-c-controller.yaml
 ```
 
-下記コマンドで locust-worker の削除が可能です。
+下記コマンドでlocust-workerの削除が可能です。
 
 ```
 $ kubectl delete -f kubernetes-config/locust-worker-controller.yaml
 ```
 
-## locust-worker の確認
+## locust-workerの確認
 
 ```
 $ kubectl get pods -l name=locust,role=worker -o wide
 ```
 
-locust-worker のスケールは、下記コマンドで変更可能です。
+locust-workerのスケールは、下記コマンドで変更可能です。
 
 ```
 $ kubectl scale --replicas=4 replicationcontrollers locust-worker
